@@ -2,10 +2,694 @@
 <html lang="kk">
 <head>
     <meta charset="UTF-8">
-    <title>Edu AI Student Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EduAI - Мектептің сыныптан тыс іс-шаралар порталы</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Сәлеметсіз бе!</h1>
-    <p>Бұл менің жаңа порталымның негізі.</p>
+
+    <!-- Айналадағы жарқыраған фондық сфералар -->
+    <div class="bg-glow-container">
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+        <div class="bg-orb orb-3"></div>
+    </div>
+
+    <!-- Тіркелу және жүйеге кіру терезесі (localStorage-да деректер жоқ кезде көрсетіледі) -->
+    <div id="guest-login-screen" class="guest-login-overlay">
+        <div class="guest-login-box glass-panel">
+            <div class="login-logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+                        <line x1="12" y1="22" x2="12" y2="15.5"></line>
+                        <polyline points="22 8.5 12 15.5 2 8.5"></polyline>
+                        <polyline points="2 15.5 12 8.5 22 15.5"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="8.5"></line>
+                    </svg>
+                </div>
+                <div class="logo-text" style="margin-left: 12px;">EduAI</div>
+            </div>
+            
+            <h2 class="login-title">EduAI жүйесіне тіркелу</h2>
+            <p class="login-desc">Мектеп үйірмелерін, еріктілік іс-шараларын зерттеңіз және портфолиоңызды дамытыңыз. Бастау үшін аты-жөніңіз бен Gmail поштаңызды енгізіңіз!</p>
+            
+            <div style="text-align: left; margin-bottom: 16px;">
+                <label class="glass-label">Аты-жөніңіз</label>
+                <input type="text" id="student-name-input" class="glass-input" placeholder="Мысалы: Әлихан Серіков" required>
+            </div>
+
+            <div style="text-align: left; margin-bottom: 24px;">
+                <label class="glass-label">Gmail поштаңыз</label>
+                <input type="email" id="student-gmail-input" class="glass-input" placeholder="Мысалы: alikhan@gmail.com" required>
+            </div>
+
+            <label class="glass-label" style="text-align: left;">Платформадағы рөліңізді таңдаңыз</label>
+            <div class="interest-selector" style="grid-template-columns: 1fr; gap: 10px; margin-bottom: 24px;">
+                <div class="interest-checkbox-label selected" onclick="selectUserRole(this, 'student')" id="role-option-student">
+                    <input type="radio" name="user-role" value="student" checked style="display:none;">
+                    👨‍🎓 Оқушы панелі
+                </div>
+                <div class="interest-checkbox-label" onclick="selectUserRole(this, 'teacher')" id="role-option-teacher">
+                    <input type="radio" name="user-role" value="teacher" style="display:none;">
+                    👩‍🏫 Мұғалім панелі (Тексеруші)
+                </div>
+            </div>
+            
+            <!-- Оқушының қызығушылықтарын таңдау бөлімі (Тек Оқушы рөлі таңдалғанда көрінеді) -->
+            <div id="student-interests-box">
+                <label class="glass-label" style="text-align: left;">Қызығушылықтарыңызды таңдаңыз</label>
+                <div class="interest-selector" style="margin-bottom: 24px;">
+                    <div class="interest-checkbox-label" onclick="toggleInterestSelection(this)" data-value="Sports">
+                        🏅 Спорт және Фитнес
+                    </div>
+                    <div class="interest-checkbox-label" onclick="toggleInterestSelection(this)" data-value="Arts">
+                        🎭 Музыка және Өнер
+                    </div>
+                    <div class="interest-checkbox-label" onclick="toggleInterestSelection(this)" data-value="Tech">
+                        🤖 Кодтау және Роботтар
+                    </div>
+                    <div class="interest-checkbox-label" onclick="toggleInterestSelection(this)" data-value="Social">
+                        🗣️ Дебат және Ұйымдастыру
+                    </div>
+                    <div class="interest-checkbox-label" onclick="toggleInterestSelection(this)" data-value="Volunteering" style="grid-column: span 2;">
+                        🤝 Қоғамдық Еріктілік қызметі
+                    </div>
+                </div>
+            </div>
+            
+            <button class="glass-btn" style="width: 100%;" onclick="submitGuestLogin()">
+                Жүйеге кіру
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Басты қосымша интерфейсі (Тіркелгеннен кейін көрінеді) -->
+    <div id="app-shell" class="app-container" style="display: none;">
+        
+        <!-- Сол жақтағы навигациялық панель (Sidebar - Компьютерлерге арналған) -->
+        <aside class="sidebar glass-panel">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+                        <line x1="12" y1="22" x2="12" y2="15.5"></line>
+                        <polyline points="22 8.5 12 15.5 2 8.5"></polyline>
+                        <polyline points="2 15.5 12 8.5 22 15.5"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="8.5"></line>
+                    </svg>
+                </div>
+                <span class="logo-text">EduAI</span>
+            </div>
+            
+            <!-- Оқушы менюі -->
+            <nav class="sidebar-menu" id="student-sidebar-menu">
+                <li class="menu-item active" onclick="switchSection('dashboard')" id="nav-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Бақылау тақтасы
+                </li>
+                <li class="menu-item" onclick="switchSection('mentor')" id="nav-mentor">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    AI Кеңесші
+                </li>
+                <li class="menu-item" onclick="switchSection('tests')" id="nav-tests">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Қызығушылықтар тесті
+                </li>
+                <li class="menu-item" onclick="switchSection('catalog')" id="nav-catalog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    Іс-шаралар каталогы
+                </li>
+                <li class="menu-item" onclick="switchSection('profile')" id="nav-profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Менің портфолиом
+                </li>
+            </nav>
+
+            <!-- Мұғалім менюі -->
+            <nav class="sidebar-menu" id="teacher-sidebar-menu" style="display: none;">
+                <li class="menu-item active" onclick="switchSection('teacher-dashboard')" id="nav-teacher-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Мұғалім панелі
+                </li>
+                <li class="menu-item" onclick="switchSection('teacher-review')" id="nav-teacher-review">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Іс-шараларды тексеру
+                </li>
+                <li class="menu-item" onclick="switchSection('teacher-students')" id="nav-teacher-students">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Оқушылар тізімі
+                </li>
+                <li class="menu-item" onclick="switchSection('teacher-profile')" id="nav-teacher-profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Жеке кабинет
+                </li>
+            </nav>
+            
+            <!-- Пайдаланушы профилінің төменгі қысқаша ақпараты -->
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebar-avatar">Ә</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebar-name">Әлихан Серіков</div>
+                    <div class="user-role" id="sidebar-role">Оқушы рөлі</div>
+                </div>
+                <!-- Шығу батырмасы -->
+                <button class="glass-btn-secondary" style="padding: 6px; border-radius: 8px; margin-left: auto;" onclick="logout()" title="Жүйеден шығу">
+                    ➡️
+                </button>
+            </div>
+        </aside>
+
+        <!-- Оң жақтағы басты контент аймағы -->
+        <main class="main-content">
+            
+            <!-- Мобильді құрылғыларға арналған жоғарғы панель (Header) -->
+            <header class="mobile-top-bar glass-panel">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="logo-icon" style="width: 32px; height: 32px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                            <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+                            <line x1="12" y1="22" x2="12" y2="15.5"></line>
+                        </svg>
+                    </div>
+                    <span class="logo-text" style="font-size: 1.25rem;">EduAI</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="notification-bell" onclick="showNotificationToast()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="user-avatar" id="mobile-top-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">Ә</div>
+                </div>
+            </header>
+
+            <!-- ДК арналған басты жоғарғы панель -->
+            <header class="main-header glass-panel">
+                <h1 class="section-title" id="page-title">Бақылау тақтасы</h1>
+                <div class="header-actions">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-right: 12px;">
+                        <span class="glass-badge" style="color: var(--accent-cyan);">Мектеп мәртебесі:</span>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #10b981; display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                            Барлық үйірмелер белсенді
+                        </span>
+                    </div>
+                    <div class="notification-bell" onclick="showNotificationToast()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <div class="notification-dot"></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ==================== ОҚУШЫ БӨЛІМДЕРІ ==================== -->
+
+            <!-- ОҚУШЫ: БАҚЫЛАУ ТАҚТАСЫ -->
+            <section id="section-dashboard" class="app-section active">
+                <div class="dashboard-grid">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <!-- Қарсы алу баннері -->
+                        <div class="glass-card dashboard-hero">
+                            <h2 class="dashboard-hero-title" id="dashboard-greeting">Сәлем, Оқушы! Бүгін мектебіңізде жаңа іс-шаралар бар</h2>
+                            <p class="dashboard-hero-subtitle">Қызығушылықтарыңызды дамытыңыз, сыныптан тыс іс-шараларға қатысып, командалық дағдыларды шыңдаңыз және жоғары оқу орындарына түсуге көмектесетін бірегей портфолио қалыптастырыңыз.</p>
+                            <button class="glass-btn" onclick="switchSection('catalog')">
+                                Іс-шараларды зерттеу
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Статистикалық көрсеткіштер -->
+                        <div class="stats-row">
+                            <div class="glass-card stat-item">
+                                <div class="stat-value" id="stats-clubs-count">0</div>
+                                <div class="stat-label">Тіркелген үйірмелер</div>
+                            </div>
+                            <div class="glass-card stat-item">
+                                <div class="stat-value">
+                                    <span id="stats-volunteer-hours">0</span>
+                                    <span class="stat-unit">сағат</span>
+                                </div>
+                                <div class="stat-label">Еріктілік уақыты</div>
+                            </div>
+                            <div class="glass-card stat-item">
+                                <div class="stat-value" id="stats-badge-count">0</div>
+                                <div class="stat-label">Қол жеткен медальдар</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ұсыныстар -->
+                        <div>
+                            <h3 class="dashboard-block-title">
+                                Сіздің қызығушылықтарыңызға сәйкес ұсыныстар
+                                <span onclick="switchSection('catalog')">Барлығын көру</span>
+                            </h3>
+                            <div class="recommendations-container" id="dashboard-recommendations-list">
+                                <!-- Оқушының қызығушылықтарына сай үйірмелер осында шығады -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-sidebar-column">
+                        <!-- Мектеп хабарландырулары -->
+                        <div class="glass-card">
+                            <h3 class="dashboard-block-title" style="margin-bottom: 16px;">🔥 Мектеп хабарландырулары</h3>
+                            <div class="event-timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-time-box">
+                                        <span class="time-day">29</span>
+                                        <span class="time-month">Мам</span>
+                                    </div>
+                                    <div class="timeline-details">
+                                        <h4 class="timeline-title">Робототехника жарысы</h4>
+                                        <p class="timeline-desc">Мектеп құрамасын қолдау үшін акт залына сағат 15:30-да келіңіздер!</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time-box">
+                                        <span class="time-day">01</span>
+                                        <span class="time-month">Мау</span>
+                                    </div>
+                                    <div class="timeline-details">
+                                        <h4 class="timeline-title">Эко-көгалдандыру күні</h4>
+                                        <p class="timeline-desc">Сенбі күні сағат 09:00-де мектеп ауласына ағаш егу науқаны басталады.</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time-box">
+                                        <span class="time-day">04</span>
+                                        <span class="time-month">Мау</span>
+                                    </div>
+                                    <div class="timeline-details">
+                                        <h4 class="timeline-title">Пікірсайыс турнирі</h4>
+                                        <p class="timeline-desc">304-кабинетте ашық пікірсайыс және дебат іріктеу туры басталады.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Тест баннері -->
+                        <div class="glass-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(99, 102, 241, 0.1) 100%); border-color: rgba(6, 182, 212, 0.2);">
+                            <h3 class="timeline-title" style="font-size: 1.1rem; margin-bottom: 8px;">Бағытыңды анықтадың ба?</h3>
+                            <p class="timeline-desc" style="margin-bottom: 16px; font-size: 0.82rem;">Қай сыныптан тыс үйірменің саған сәйкес келетінін білмесеңіз, біздің интерактивті тестімізден өтіп көріңіз!</p>
+                            <button class="glass-btn" style="width: 100%; padding: 10px; font-size: 0.85rem;" onclick="switchSection('tests')">
+                                Тестті бастау
+                            </button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+
+            <!-- ОҚУШЫ: AI КЕҢЕСШІ -->
+            <section id="section-mentor" class="app-section">
+                <div class="mentor-container">
+                    
+                    <!-- Кеңесші профилі -->
+                    <div class="glass-card mentor-profile-card">
+                        <div class="mentor-avatar">🧠</div>
+                        <h3 class="timeline-title" style="font-size: 1.3rem; margin-bottom: 4px;">Кеңесші AI</h3>
+                        <p class="glass-badge cyan" style="margin-bottom: 16px;">Сыныптан тыс іс-шаралар сарапшысы</p>
+                        <p class="timeline-desc" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 24px;">Сіздің виртуалды кеңесшіңіз. Үйірмелерді қалай таңдау керек, мектепте жаңа үйірме қалай ашуға болады және еріктілік сағаттарын растау жолдары туралы сұраңыз.</p>
+                        
+                        <div style="text-align: left; width: 100%; padding-top: 16px; border-top: 1px solid var(--glass-border);">
+                            <h4 class="glass-label" style="font-size: 0.8rem; margin-bottom: 8px;">Жиі қойылатын сұрақтар</h4>
+                            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.75rem; color: var(--text-muted);">
+                                <li style="cursor: pointer; transition: 0.2s;" class="counsel-question-link" onclick="injectQuickQuestion('Мектепте жаңа сыныптан тыс үйірмені қалай ашуға болады?')">👉 Жаңа үйірмені қалай ашу керек?</li>
+                                <li style="cursor: pointer; transition: 0.2s;" class="counsel-question-link" onclick="injectQuickQuestion('Еріктілік сағаттарын жинау оқуға түсу кезінде қалай көмектеседі?')">👉 Еріктілік не үшін қажет?</li>
+                                <li style="cursor: pointer; transition: 0.2s;" class="counsel-question-link" onclick="injectQuickQuestion('Командалық жұмысты дамыту үшін қандай спорт үйірмесі жақсы?')">👉 Қай спорт командалық жұмысты дамытады?</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Чат интерфейсі -->
+                    <div class="glass-panel mentor-chat-wrapper">
+                        <div class="mentor-chat-messages" id="mentor-chat-messages-container">
+                            <div class="chat-bubble bot">
+                                Сәлем! Мен сенің сыныптан тыс іс-шаралар бойынша AI кеңесшіңмін. Бұл жерде тек академиялық емес, үйірмелер, спорт, дебат және еріктілік туралы сөйлесеміз! Мектепте жаңа үйірме ашқың келе ме? Әлде еріктілік сағаттарын мақұлдау жайлы сұрайсың ба? Сұрағыңды жаз!
+                            </div>
+                        </div>
+                        
+                        <div class="chat-quick-chips">
+                            <div class="quick-chip" onclick="injectQuickQuestion('Шахмат клубына қалай тіркеледі?')">♟️ Шахмат үйірмесі</div>
+                            <div class="quick-chip" onclick="injectQuickQuestion('Дебат клубына қатысудың пайдасы қандай?')">🗣️ Пікірсайыс пайдасы</div>
+                            <div class="quick-chip" onclick="injectQuickQuestion('Маған еріктілік іс-шараларын ұсыныңызшы')">🤝 Еріктілік ұсыну</div>
+                        </div>
+                        
+                        <div class="chat-input-bar">
+                            <input type="text" id="mentor-chat-input" class="glass-input" placeholder="Кеңесшіге сұрақ қойыңыз..." onkeypress="handleMentorInputKey(event)">
+                            <button class="glass-btn" onclick="sendMentorChatMessage()">
+                                Жіберу
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+
+            <!-- ОҚУШЫ: ҚЫЗЫҒУШЫЛЫҚТАР ТЕСТІ -->
+            <section id="section-tests" class="app-section">
+                <div class="glass-panel quiz-container" id="quiz-intro-box">
+                    <div class="mentor-avatar" style="margin: 0 auto 20px auto; font-size: 2.5rem; width: 80px; height: 80px;">📝</div>
+                    <h2 class="dashboard-hero-title" style="font-size: 1.8rem;">Іс-шараларды таңдау тесті</h2>
+                    <p class="login-desc">Академиялық емес 5 сұраққа жауап беріп, өзіңіздің бейіміңізді табыңыз және профиліңізге арнайы жетістік белгісін ашыңыз. Біз сізге ең қолайлы үйірмелерді ұсынамыз!</p>
+                    
+                    <button class="glass-btn" onclick="startExtracurricularQuiz()">
+                        Сәйкестік тестін бастау
+                    </button>
+                </div>
+
+                <!-- Тест сұрақтарының терезесі -->
+                <div class="glass-panel quiz-container" id="quiz-question-box" style="display: none;">
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="quiz-fill-ratio"></div>
+                    </div>
+                    
+                    <div id="quiz-question-number" class="glass-badge" style="margin-bottom: 12px;">Сұрақ 1 / 5</div>
+                    <h3 class="quiz-question-title" id="quiz-question-text">Сұрақ жүктелуде...</h3>
+                    
+                    <div class="quiz-options-list" id="quiz-options-container">
+                        <!-- Нұсқалар осында шығады -->
+                    </div>
+                    
+                    <div class="quiz-action-bar">
+                        <button class="glass-btn-secondary" id="quiz-prev-btn" onclick="goToQuizPrev()" style="visibility: hidden;">Артқа</button>
+                        <button class="glass-btn" id="quiz-next-btn" onclick="goToQuizNext()" disabled>Келесі сұрақ</button>
+                    </div>
+                </div>
+
+                <!-- Тест нәтижесінің терезесі -->
+                <div class="glass-panel quiz-container quiz-result-view" id="quiz-results-box">
+                    <div class="mentor-avatar" style="margin: 0 auto 24px auto; background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%);">🏆</div>
+                    <h2 class="dashboard-hero-title" style="font-size: 2rem;">Тест аяқталды!</h2>
+                    <h3 class="timeline-title" style="font-size: 1.4rem; color: var(--accent-cyan); margin-bottom: 12px;" id="quiz-archetype-title">Шығармашыл стратег</h3>
+                    <p class="login-desc" id="quiz-archetype-desc" style="margin-bottom: 24px;">Сіз логикалық шешімдерге, жоспарлауға немесе орындаушылық өнерге өте бейімсіз. Мектептегі робототехника немесе шахмат үйірмелері сіздің дағдыларыңызды одан әрі аша түседі!</p>
+                    
+                    <div class="glass-card" style="text-align: left; margin-bottom: 24px;">
+                        <h4 class="glass-label">Ашылған жетістік белгісі:</h4>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div class="user-avatar" id="quiz-badge-icon" style="width: 50px; height: 50px; border-radius: 12px; font-size: 1.8rem; background: rgba(236,72,153,0.15); border-color: rgba(236,72,153,0.3);">🤖</div>
+                            <div>
+                                <h5 class="timeline-title" id="quiz-badge-name">STEM Инженері белгісі</h5>
+                                <p class="timeline-desc">Сіздің мектеп портфолиоңызға қосылды.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ЖИ ұсынған үйірмелер карточкалары -->
+                    <div style="margin-top: 32px; text-align: left; margin-bottom: 32px;">
+                        <h4 class="glass-label" style="font-size: 0.9rem; color: white; margin-bottom: 16px;">✨ ЖИ ұсынатын сыныптан тыс іс-шаралар:</h4>
+                        <div class="recommendations-container" id="quiz-recommendations-container" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <!-- Батырмалары толықтай істейтін үйірмелер осында шығады -->
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="glass-btn" onclick="switchSection('profile')">Портфолионы көру</button>
+                        <button class="glass-btn-secondary" onclick="switchSection('catalog')">Каталогқа өту</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ОҚУШЫ: ІС-ШАРАЛАР КАТАЛОГЫ -->
+            <section id="section-catalog" class="app-section">
+                <!-- Категория фильтрі -->
+                <div class="catalog-tabs">
+                    <button class="catalog-tab active" onclick="filterCatalog('all', this)">🌐 Барлығы</button>
+                    <button class="catalog-tab" onclick="filterCatalog('clubs', this)">🗣️ Үйірмелер</button>
+                    <button class="catalog-tab" onclick="filterCatalog('sports', this)">🏀 Спорт</button>
+                    <button class="catalog-tab" onclick="filterCatalog('volunteering', this)">🤝 Еріктілік</button>
+                    <button class="catalog-tab" onclick="filterCatalog('events', this)">✨ Іс-шаралар</button>
+                </div>
+                
+                <!-- Үйірмелер карточкаларының торы -->
+                <div class="catalog-grid" id="catalog-items-container">
+                    <!-- Үйірмелер динамикалық түрде script.js арқылы осында жүктеледі -->
+                </div>
+            </section>
+
+            <!-- ОҚУШЫ: МЕНІҢ ПОРТФОЛИОМ -->
+            <section id="section-profile" class="app-section">
+                
+                <!-- Профильдің бас карточкасы -->
+                <div class="glass-panel profile-header-card">
+                    <div class="profile-avatar-big" id="profile-big-avatar">Ә</div>
+                    <div class="profile-details-info">
+                        <h2 id="profile-full-name">Әлихан Серіков</h2>
+                        <p class="timeline-desc" style="font-size: 0.95rem;" id="profile-gmail-subtitle">extracurricular.portfolio@gmail.com | 11-сынып оқушысы</p>
+                        <div class="profile-badges-row" id="profile-unlocked-badges">
+                            <!-- Жетістік белгілері осында шығады -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Статистикалық көрсеткіштер -->
+                <div class="profile-dashboard-summary">
+                    <div class="glass-card stat-item" style="text-align: center;">
+                        <div class="stat-value" id="profile-joined-count" style="justify-content: center;">0</div>
+                        <div class="stat-label">Тіркелген іс-шараларым</div>
+                    </div>
+                    <div class="glass-card stat-item" style="text-align: center;">
+                        <div class="stat-value" style="justify-content: center;">
+                            <span id="profile-volunteer-logged">0</span>
+                            <span class="stat-unit">/ 50 сағат</span>
+                        </div>
+                        <div class="stat-label">Еріктілік мақсаты</div>
+                    </div>
+                    <div class="glass-card stat-item" style="text-align: center;">
+                        <div class="stat-value" id="profile-badges-unlocked-count" style="justify-content: center;">0</div>
+                        <div class="stat-label">Жиналған медальдар</div>
+                    </div>
+                </div>
+                
+                <!-- Ақпараттар торы -->
+                <div class="profile-grid-layout">
+                    <!-- Қызығушылықтар -->
+                    <div class="glass-card">
+                        <h3 class="timeline-title" style="font-size: 1.15rem; margin-bottom: 12px;">Менің қызығушылықтарым</h3>
+                        <p class="timeline-desc">Тіркелу кезінде таңдалған және сізге жаңа үйірмелерді ұсынуға көмектесетін бағыттар.</p>
+                        <div class="interest-tag-list" id="profile-interests-chips">
+                            <!-- Қызығушылықтар осында шығады -->
+                        </div>
+                    </div>
+                    
+                    <!-- Белсенді кесте -->
+                    <div class="glass-card">
+                        <h3 class="timeline-title" style="font-size: 1.15rem; margin-bottom: 12px;">Үйірмелердің апталық кестесі</h3>
+                        <p class="timeline-desc">Тіркелген үйірмелеріңіздің өту уақыты мен орны. Жаттығуларды өткізіп алмаңыз!</p>
+                        
+                        <div id="profile-schedule-timeline" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Кесте тізімі осында шығады -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ==================== МҰҒАЛІМ-ТЕКСЕРУШІ БӨЛІМДЕРІ ==================== -->
+
+            <!-- МҰҒАЛІМ: БАСТЫ ПАНЕЛЬ -->
+            <section id="section-teacher-dashboard" class="app-section">
+                <div class="dashboard-grid">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <!-- Мұғалімнің қарсы алу баннері -->
+                        <div class="glass-card dashboard-hero" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%); border-color: rgba(139, 92, 246, 0.2);">
+                            <h2 class="dashboard-hero-title">👩‍🏫 Мұғалім-Тексеруші жеке кабинеті</h2>
+                            <p class="dashboard-hero-subtitle">Қайырлы күн! Сіз сыныптан тыс іс-шараларды үйлестіру және оқушылардың белсенділіктерін, еріктілік сағаттарын тексеріп, мақұлдау үшін Бас тексеруші болып тағайындалдыңыз.</p>
+                            <button class="glass-btn" onclick="switchSection('teacher-review')" style="background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%); box-shadow: var(--glow-purple);">
+                                Өтінімдерді тексеру
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Мектеп статистикасы -->
+                        <div class="stats-row">
+                            <div class="glass-card stat-item">
+                                <div class="stat-value" id="teacher-stats-students">24</div>
+                                <div class="stat-label">Тіркелген оқушылар саны</div>
+                            </div>
+                            <div class="glass-card stat-item">
+                                <div class="stat-value" id="teacher-stats-hours">280</div>
+                                <div class="stat-label">Жалпы мақұлданған сағаттар</div>
+                            </div>
+                            <div class="glass-card stat-item">
+                                <div class="stat-value" id="teacher-stats-pending" style="color: var(--accent-pink);">3</div>
+                                <div class="stat-label">Тексерілуі тиіс өтінімдер</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Мұғалімнің жаңа іс-шара қосу құралы -->
+                        <div class="glass-card">
+                            <h3 class="dashboard-block-title" style="margin-bottom: 12px;">➕ Жаңа үйірме немесе іс-шара қосу</h3>
+                            <p class="timeline-desc" style="margin-bottom: 20px;">Мектептің сыныптан тыс іс-шаралар каталогын жаңа спорт командаларымен, еріктілік науқандарымен немесе интеллектуалдық үйірмелермен толықтырыңыз.</p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                                <div>
+                                    <label class="glass-label">Іс-шараның атауы</label>
+                                    <input type="text" id="add-act-title" class="glass-input" placeholder="Мысалы: Үстел теннисі клубы">
+                                </div>
+                                <div>
+                                    <label class="glass-label">Категориясы</label>
+                                    <select id="add-act-category" class="glass-input" style="height: 48px; color: var(--text-primary); background: rgba(5,8,20,0.85);">
+                                        <option value="clubs">🗣️ Интеллектуалды үйірме</option>
+                                        <option value="sports">🏀 Спорт секциясы</option>
+                                        <option value="volunteering">🤝 Еріктілік ұйымы</option>
+                                        <option value="events">✨ Мектеп іс-шарасы</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 16px;">
+                                <label class="glass-label">Іс-шараның қысқаша сипаттамасы</label>
+                                <textarea id="add-act-desc" class="glass-input" placeholder="Оқушыларға арналған үйірменің мақсаты мен ерекшеліктерін сипаттаңыз..." style="height: 80px; resize: none;"></textarea>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                                <div>
+                                    <label class="glass-label">Өтетін уақыты (Кестесі)</label>
+                                    <input type="text" id="add-act-schedule" class="glass-input" placeholder="Мысалы: Сәрсенбі және Жұма, 16:30">
+                                </div>
+                                <div>
+                                    <label class="glass-label">Өтетін орны</label>
+                                    <input type="text" id="add-act-location" class="glass-input" placeholder="Мысалы: Кіші спорт залы">
+                                </div>
+                            </div>
+
+                            <button class="glass-btn" style="width: 100%;" onclick="teacherCreateActivity()">
+                                Каталогқа жаңа іс-шара қосу
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Мұғалімнің бүйірлік хабарлары мен бақылауы -->
+                    <div class="dashboard-sidebar-column">
+                        <div class="glass-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.1) 100%); border-color: rgba(99, 102, 241, 0.2);">
+                            <h3 class="timeline-title" style="font-size: 1.1rem; margin-bottom: 8px;">Тексеруші нұсқаулығы</h3>
+                            <p class="timeline-desc" style="margin-bottom: 12px; font-size: 0.82rem; line-height: 1.5;">Сыныптан тыс белсенділікті тексеру кезінде оқушының шынымен де сол іс-шараға қатысқанын немесе еріктілік қызметін толық атқарғанын растап басыңыз.</p>
+                            <p class="timeline-desc" style="font-size: 0.82rem; line-height: 1.5;">Жалпы мақұлданған еріктілік сағаттары автоматты түрде оқушының профильдік бақылау тақтасына жіберіледі.</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+
+            <!-- МҰҒАЛІМ: ІС-ШАРАЛАРДЫ ТЕКСЕРУ -->
+            <section id="section-teacher-review" class="app-section">
+                <div class="glass-panel" style="padding: 32px;">
+                    <h3 class="dashboard-block-title" style="margin-bottom: 12px;">Оқушылардың өтінімдерін тексеру жүйесі</h3>
+                    <p class="timeline-desc" style="margin-bottom: 24px;">Төменде үйірмелерге жазылуды растау немесе еріктілік сағаттарын сұраған оқушылардың өтінімдері тізімі көрсетілген. Рөлдік тексеруді жүзеге асырыңыз.</p>
+                    
+                    <div id="teacher-review-list" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Өтінімдер тізімі осында шығады -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- МҰҒАЛІМ: ОҚУШЫЛАР ТІЗІМІ -->
+            <section id="section-teacher-students" class="app-section">
+                <div class="glass-panel" style="padding: 32px;">
+                    <h3 class="dashboard-block-title" style="margin-bottom: 12px;">Мектеп оқушыларының белсенділік базасы</h3>
+                    <p class="timeline-desc" style="margin-bottom: 24px;">Платформада тіркелген барлық оқушылар, олардың пошталары, рөлдері және қатысатын үйірмелерінің деректері.</p>
+                    
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--glass-border); color: var(--accent-cyan); font-family: var(--font-outfit);">
+                                    <th style="padding: 12px 16px;">Оқушы есімі</th>
+                                    <th style="padding: 12px 16px;">Gmail поштасы</th>
+                                    <th style="padding: 12px 16px;">Рөлі</th>
+                                    <th style="padding: 12px 16px;">Тіркелген үйірмелер саны</th>
+                                    <th style="padding: 12px 16px;">Еріктілік сағаттары</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacher-students-table-body">
+                                <!-- Оқушылар кестесі динамикалық түрде script.js арқылы толтырылады -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- МҰҒАЛІМ: ЖЕКЕ КАБИНЕТ -->
+            <section id="section-teacher-profile" class="app-section">
+                <div class="glass-panel profile-header-card">
+                    <div class="profile-avatar-big" id="teacher-big-avatar" style="background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%);">М</div>
+                    <div class="profile-details-info">
+                        <h2 id="teacher-full-name">Әлия Мұратқызы</h2>
+                        <p class="timeline-desc" style="font-size: 0.95rem;" id="teacher-gmail-subtitle">teacher.evaluator@gmail.com | Мектеп Тексерушісі (Модератор)</p>
+                        <div class="profile-badges-row">
+                            <span class="glass-badge purple">Тексеруші Мәртебесі</span>
+                            <span class="glass-badge cyan">Сыныптан тыс іс-шаралар Бас үйлестірушісі</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-grid-layout" style="grid-template-columns: 1fr;">
+                    <div class="glass-card">
+                        <h3 class="timeline-title" style="font-size: 1.15rem; margin-bottom: 12px;">Модератор құқықтары</h3>
+                        <p class="timeline-desc" style="line-height: 1.6;">Сізде оқушылардың сыныптан тыс жетістіктерін толық бақылауға және бекітуге мүмкіндік бар. Мектеп әкімшілігінің бұйрығына сәйкес, оқушылардың сыныптан тыс белсенділігі мен еріктілік сағаттарын тексеру жұмыстарын әділ бағалау жүктеледі.</p>
+                        <button class="glass-btn-secondary" style="margin-top: 16px; color: var(--accent-pink); border-color: rgba(236,72,153,0.15);" onclick="logout()">
+                            ➡️ Жүйеден шығу (Профильді ауыстыру)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- Төменгі мобильді шарлау панелі (Bottom Nav - Ұялы телефондарға арналған) -->
+        <nav class="mobile-nav-dock">
+            <!-- Оқушы мобильді навигациясы -->
+            <div class="mobile-menu-container" id="student-mobile-menu">
+                <button class="mobile-menu-item active" onclick="switchSection('dashboard')" id="mobile-nav-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Негізгі
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('mentor')" id="mobile-nav-mentor">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    AI Mentor
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('tests')" id="mobile-nav-tests">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    Тест
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('catalog')" id="mobile-nav-catalog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path></svg>
+                    Каталог
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('profile')" id="mobile-nav-profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Профиль
+                </button>
+            </div>
+
+            <!-- Мұғалім мобильді навигациясы -->
+            <div class="mobile-menu-container" id="teacher-mobile-menu" style="display: none;">
+                <button class="mobile-menu-item active" onclick="switchSection('teacher-dashboard')" id="mobile-nav-teacher-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Басты
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('teacher-review')" id="mobile-nav-teacher-review">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Тексеру
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('teacher-students')" id="mobile-nav-teacher-students">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                    Оқушылар
+                </button>
+                <button class="mobile-menu-item" onclick="switchSection('teacher-profile')" id="mobile-nav-teacher-profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Кабинет
+                </button>
+            </div>
+        </nav>
+        
+    </div>
+
+    <!-- Түрлі хабарламаларға арналған Тоаст жүйесі -->
+    <div id="toast-message" style="display: none;"></div>
+
 </body>
 </html>
